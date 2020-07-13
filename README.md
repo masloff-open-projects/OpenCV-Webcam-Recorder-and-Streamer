@@ -4,6 +4,8 @@ A small software to create CCTV for single camera. Completely created on __Pytho
 
 <img align="center" width="100%" src="https://i.ibb.co/6FGZRv2/Screenshot-20200714-002543.png">
 
+### How to set up a video server
+
 ##### How to isntall
 
 Copy the repository to your Linux system. 
@@ -61,6 +63,7 @@ Hooks.set('Hook', lambda E: execute(E))
 | on_before_write_frame | frame | Executing when the frame is ready to be recorded, but not yet recorded. |
 | on_setup_cfg | configuration object | Executing when configs ready to use. |
 | on_exit | True | Executing when system exiting. |
+
 ---
 ![Git size](https://img.shields.io/github/languages/code-size/iRTEX-Creative/OpenCV-Webcam-Recorder-and-Streamer)
 ![GitHub All Releases](https://img.shields.io/github/downloads/iRTEX-Creative/OpenCV-Webcam-Recorder-and-Streamer/total)

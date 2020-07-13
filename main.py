@@ -6,7 +6,6 @@
 # version: 1.0.0
 # author: iRTEX Creative
 
-from flask_opencv_streamer.streamer import Streamer
 from libs.hooks import hooks
 import datetime
 import numpy as np

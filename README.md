@@ -69,8 +69,6 @@ Hooks.set('Hook', lambda E: execute(E))
 To use the camera remotely (in the local network), you must in the configuration file in the line "web_stream": false, change false to true.
 Then reboot the server. In the same repository is a folder clients, it has a file ```view.py```, open it on the computer from which you want to view the camera.  You will be asked to enter the IP camera (you can get it in the control panel of your router, or via ```nmap```), port (5555 by default). If all data is entered correctly, the camera will open in a new window!
 
-Translated with www.DeepL.com/Translator (free version)
-
 ---
 ![Git size](https://img.shields.io/github/languages/code-size/iRTEX-Creative/OpenCV-Webcam-Recorder-and-Streamer)
 ![GitHub All Releases](https://img.shields.io/github/downloads/iRTEX-Creative/OpenCV-Webcam-Recorder-and-Streamer/total)

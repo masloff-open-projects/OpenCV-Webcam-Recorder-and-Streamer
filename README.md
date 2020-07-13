@@ -50,7 +50,7 @@ Hooks.set('Hook', lambda E: execute(E))
 | on_eye_detect | frame with eye | Executing when the camera detect the eye. |
 | on_body_detect | frame with body | Executing when the camera detect the body. |
 | on_body_upper_detect | frame with body | Executing when the camera detect the upper body. |
-| on_body_lower_detect | frame with body | | Executing when the camera detect the lower. |
+| on_body_lower_detect | frame with body | Executing when the camera detect the lower. |
 | on_start_webserver | None | Executing when web server is ready started. |
 | on_wait_camera | number camera in for | Executing when system wait camera. To be inside the iteration of the cycle, not outside it. |
 | on_init | True | Executing when system started. |

@@ -1,0 +1,18 @@
+{
+        "detect_face": true,
+        "detect_body": true,
+        "detect_eye": true,
+        "show_detect_motion_on_frame": true,
+        "show_time_on_frame": true,
+        "time_mask": "%x %X",
+        "show_fps_on_frame": true,
+        "fps_mask": "FPS: {value}",
+        "save_video_on_movies": false,
+        "save_video": false,
+        "pixel_update_for_detect": 200,
+        "recorder_fps": 2,
+        "record_file_mask": "dataset/{isotme}.avi",
+        "text_on_frame": "My Webcam",
+        "web_stream": true,
+        "show_stream": true
+}

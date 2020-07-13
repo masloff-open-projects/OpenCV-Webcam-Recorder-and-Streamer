@@ -15,6 +15,7 @@ import os
 import time
 import base64
 import zmq
+import json
 
 def main(argv):
 
@@ -201,24 +202,8 @@ if __name__ == '__main__':
     Hooks.call('on_init', True)
 
     # Set config
-    cfg = {
-        'detect_face': True,
-        'detect_body': True,
-        'detect_eye': True,
-        'show_detect_motion_on_frame': True,
-        'show_time_on_frame': True,
-        'time_mask': '%x %X',
-        'show_fps_on_frame': True,
-        'fps_mask': 'FPS: {value}',
-        'save_video_on_movies': False,
-        'save_video': False,
-        'pixel_update_for_detect': 200,
-        'recorder_fps': 2,
-        'record_file_mask': 'dataset/{isotme}.avi',
-        'text_on_frame': 'My Webcam',
-        'web_stream': False,
-        'show_stream': True
-    }
+    with open('config.json') as config_file:
+        cfg = json.load(config_file)
 
     Hooks.call('on_setup_cfg', cfg)
 

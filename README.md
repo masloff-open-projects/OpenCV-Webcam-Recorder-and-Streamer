@@ -1,6 +1,6 @@
 # OpenCV CCTV
 
-A small software to create CCTV for single camera. Completely created on __Python 3.6__, can detect faces, people and movements. Recorded videos have an info plate on top of the screen, which you can change from the configuration variable. The system can recognize movement and record the moving object as it moves, or it can record video continuously.  The code also supports custom hooks. The software was tested on Raspberry Pi
+A small software to create CCTV for single camera. Completely created on __Python 3.6__, can detect faces, people and movements, stream video. Recorded videos have an info plate on top of the screen, which you can change from the configuration variable. The system can recognize movement and record the moving object as it moves, or it can record video continuously.  The code also supports custom hooks. The software was tested on Raspberry Pi
 
 ##### How to isntall
 

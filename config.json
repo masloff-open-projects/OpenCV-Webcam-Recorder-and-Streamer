@@ -1,5 +1,5 @@
 {
-        "video_zip": 0.5,
+        "video_zip": false,
         "detect_face": true,
         "detect_text_labels": true,
         "detect_text_labels_color": [255, 255, 255],
@@ -14,15 +14,16 @@
         "show_fps_on_frame": true,
         "fps_mask": "FPS: {value}",
         "save_video_on_movies": true,
-        "save_video": false,
+        "save_video": true,
         "pixel_update_for_detect": 200,
         "recorder_fps": 2,
-        "record_file_mask": "dataset/{d}{m}{Y}_{H}{M}{S}.mp4",
+        "record_file_mask": "{d}{m}{Y}_{H}{M}{S}.avi",
         "text_on_frame": "My Webcam",
         "web_stream": true,
         "web_ip": "tcp://0.0.0.0:5555",
         "show_stream": true,
-        "fourcc": "MP4V",
+        "fourcc": "DIVX",
         "flask_server": true,
-        "flask_port": 5000
+        "flask_port": 5000,
+        "flask_ip": "0.0.0.0"
 }

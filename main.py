@@ -41,8 +41,56 @@ def main(argv):
 
         Hooks.call('on_start_webserver', None)
 
-    # Create cap
-    cap = cv2.VideoCapture(0)
+    # Try open Flask server
+    def app():
+
+        if cfg["flask_server"] == True:
+
+            app = Flask(__name__)
+
+            def __stream__():
+
+                Log.info('STREAM', 'Start stream')
+
+                context = zmq.Context()
+                footage_socket = context.socket(zmq.SUB)
+
+                Log.info('STREAM', 'Connect to socket server: {ip}'.format(ip=cfg['web_ip']))
+
+                try:
+
+                    footage_socket.bind(cfg['web_ip'])
+
+                    footage_socket.setsockopt_string(zmq.SUBSCRIBE, np.unicode(''))
+
+                    Log.info('STREAM', 'Connected success')
+
+                    footage_socket.setsockopt_string(zmq.SUBSCRIBE, np.unicode(''))
+
+                    while True:
+                        frame = footage_socket.recv_string()
+                        img = base64.b64decode(frame)
+
+                        yield (b'--frame\r\n'
+                               b'Content-Type: image/jpeg\r\n\r\n' + img + b'\r\n\r\n')
+
+                    footage_socket.close()
+
+                except:
+                    pass
+
+            @app.route('/video')
+            def __main__():
+                return Response(__stream__(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+            @app.route('/records')
+            def __records__():
+                return render_template('records.html', videos=os.listdir('./static/'))
+
+            if __name__ == '__main__':
+                app.run(host=str(cfg['flask_ip']), port=int(cfg['flask_port']))
+
+    threading.Thread(target=app).start()
 
     # Mount camera
     Log.info('WAIT', 'Wait camera')
@@ -50,7 +98,6 @@ def main(argv):
     while (True):
 
         for i in range(0, 3):
-
             Hooks.call('on_wait_camera', i)
 
             cap = cv2.VideoCapture(i)
@@ -61,20 +108,29 @@ def main(argv):
                 Log.info('OK', 'Camera is connected')
 
                 if (cfg['fourcc'] == 'MJPG'):
-                    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+                    fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
+
+                elif (cfg['fourcc'] == 'FMP4'):
+                    fourcc = cv2.VideoWriter_fourcc('F','M','P','4')
 
                 elif (cfg['fourcc'] == 'MP4V'):
                     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+
+                elif (cfg['fourcc'] == 'DIVX'):
+                    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+
+                elif (cfg['fourcc'] == 'iYUV'):
+                    fourcc = cv2.VideoWriter_fourcc('i', 'Y', 'U', 'V')
 
                 else:
                     fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
 
-                video = cv2.VideoWriter(cfg['record_file_mask'].format(
+                __video = cv2.VideoWriter((os.path.dirname(os.path.realpath(__file__))) + '/static/' + cfg['record_file_mask'].format(
                     time=(datetime.datetime.now()).strftime(cfg['time_mask']),
                     isotme=(datetime.datetime.now()).isoformat(),
                     count=str(len(glob.glob('{path}/*'.format(
-                        path=os.path.dirname(os.path.abspath(cfg['record_file_mask']))
+                        path=os.path.dirname(os.path.abspath('static/' + cfg['record_file_mask']))
                     )))),
                     d=(datetime.datetime.now()).strftime("%d"),
                     m=(datetime.datetime.now()).strftime("%m"),
@@ -101,53 +157,6 @@ def main(argv):
                 upper_cascade = cv2.CascadeClassifier(cascade_path_upper)
                 lower_cascade = cv2.CascadeClassifier(cascade_path_lower)
 
-                # Try open Flask server
-                def app ():
-
-                    if cfg["flask_server"] == True:
-
-                        app = Flask(__name__)
-
-                        def __stream__():
-
-                            Log.info('STREAM', 'Start stream')
-
-                            context = zmq.Context()
-                            footage_socket = context.socket(zmq.SUB)
-
-                            Log.info('STREAM', 'Connect to socket server: {ip}'.format(ip=cfg['web_ip']))
-
-                            try:
-
-                                footage_socket.bind(cfg['web_ip'])
-
-                                footage_socket.setsockopt_string(zmq.SUBSCRIBE, np.unicode(''))
-
-                                Log.info('STREAM', 'Connected success')
-
-                                footage_socket.setsockopt_string(zmq.SUBSCRIBE, np.unicode(''))
-
-                                while True:
-
-                                    frame = footage_socket.recv_string()
-                                    img = base64.b64decode(frame)
-
-                                    yield (b'--frame\r\n'
-                                           b'Content-Type: image/jpeg\r\n\r\n' + img + b'\r\n\r\n')
-
-                                footage_socket.close()
-
-                            except: pass
-
-                        @app.route('/video')
-                        def __main__():
-                            return Response(__stream__(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-                        if __name__ == '__main__':
-                            app.run(host='0.0.0.0', port=int(cfg['flask_port']))
-
-                threading.Thread(target=app).start()
-
                 while True:
 
                     ret, frame = cap.read()
@@ -156,9 +165,11 @@ def main(argv):
 
                         _frame_text = "{value}\n".format(value=cfg['text_on_frame'])
 
-                        #_gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                        # ZIP Frame
                         if (not cfg['video_zip'] == False):
-                            frame = cv2.resize(frame, (0, 0), fx=float(cfg['video_zip']), fy=float(cfg['video_zip']))
+                            frame = cv2.resize(frame, (int(cfg['video_zip'][0]), int(cfg['video_zip'][1])), interpolation = cv2.INTER_NEAREST)
+
+                        #_gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
                         # Get the foreground mask
                         _fgmask = _fgbg.apply(frame)
@@ -259,15 +270,16 @@ def main(argv):
 
                         # Save video
                         if (cfg['save_video']) == True:
-                            video.write(frame)
+                            __video.write(frame)
                             Hooks.call('on_save_video', frame)
 
                         # Motion detect
                         else:
                             if (cfg['save_video_on_movies'] == True):
                                 if int(_count) > int(cfg['pixel_update_for_detect']):
-                                    video.write(frame)
+                                    __video.write(frame)
                                     Hooks.call('on_motion_detect', frame)
+                                    Hooks.call('on_save_video', frame)
 
                         # Send picture to server
                         if cfg['web_stream'] == True:
@@ -294,7 +306,7 @@ def main(argv):
                 cv2.destroyAllWindows()
 
                 cap.release()
-                video.release()
+                __video.release()
 
                 Hooks.call('on_release', None)
 

@@ -144,7 +144,7 @@ def main(argv):
                             return Response(__stream__(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
                         if __name__ == '__main__':
-                            app.run(host='0.0.0.0')
+                            app.run(host='0.0.0.0', port=int(cfg['flask_port']))
 
                 threading.Thread(target=app).start()
 

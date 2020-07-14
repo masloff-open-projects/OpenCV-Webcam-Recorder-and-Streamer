@@ -20,8 +20,9 @@
         "record_file_mask": "dataset/{d}{m}{Y}_{H}{M}{S}.mp4",
         "text_on_frame": "My Webcam",
         "web_stream": true,
-        "web_ip": "tcp://0.0.0.0:9998",
+        "web_ip": "tcp://0.0.0.0:5555",
         "show_stream": true,
         "fourcc": "MP4V",
-        "flask_server": true
+        "flask_server": true,
+        "flask_port": 5000
 }

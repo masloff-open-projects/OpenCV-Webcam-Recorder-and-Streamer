@@ -72,6 +72,12 @@ Then reboot the server. In the same repository is a folder clients, it has a fil
 
 Either you can connect to the broadcast via a regular browser or VLC. As a streaming address, use ```http://IP-YOUR-PC:5000/video```. 
 
+#### Table of server URLs
+| URL | Description|
+| ------ | ------ |
+| tcp://0.0.0.0:5555 | Primary video stream. You can connect to it through the tuner client in the ``clients`` folder |
+| http://0.0.0.0:5000/video | Secondary video stream Flask. You can connect to it from a VLC or browser. It works with only one client at a time, the second will not be able to connect if the first is watching the broadcast |
+| http://0.0.0.0:5000/records | Page for downloading video recordings |
 ---
 ![Git size](https://img.shields.io/github/languages/code-size/iRTEX-Creative/OpenCV-Webcam-Recorder-and-Streamer)
 ![GitHub All Releases](https://img.shields.io/github/downloads/iRTEX-Creative/OpenCV-Webcam-Recorder-and-Streamer/total)

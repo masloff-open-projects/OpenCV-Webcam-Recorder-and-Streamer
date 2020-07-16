@@ -40,11 +40,11 @@ def _user_hooks(cv2=None, Hooks=None, Filters=None):
     # Filters.set('on_config', change_cfg)
 
 
+    # Create the third highest priority file to attempt recording
+    # def on_reserve_videofile(file):
+    # return ""
 
-    def on_reserve_videofile(file):
-        return ""
-
-    Filters.set('on_reserve_videofile', on_reserve_videofile)
+    # Filters.set('on_reserve_videofile', on_reserve_videofile)
 
     pass
 

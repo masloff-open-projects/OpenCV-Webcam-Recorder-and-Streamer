@@ -382,7 +382,7 @@ def main(argv):
                                     _video.write(Filters.call('on_frame_motion_detect_record', frame))
                                     Hooks.call('on_motion_detect', frame)
                                     Hooks.call('on_save_video', frame)
-                                    Request.call('on_motion_detect', frame[y:y + h, x:x + w]) 
+                                    Request.call('on_motion_detect', frame) 
 
                         # Send picture to server
                         if cfg['web_stream'] == True:

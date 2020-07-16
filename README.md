@@ -4,9 +4,7 @@ A small software to create CCTV for single camera. Completely created on __Pytho
 
 <img align="center" width="100%" src="https://i.ibb.co/6FGZRv2/Screenshot-20200714-002543.png">
 
-### How to set up a video server
-
-##### How to isntall
+####How to install camera server
 
 Copy the repository to your Linux system. 
 
@@ -45,7 +43,7 @@ __Filter__ - processing some action through a user-defined function
 
 __Request__ - A web request that is executed during any action
 
-#### Table of filters
+### Table of filters
 
 | Filter | Arg | Description|
 | ------ | ------ |  ------ |
@@ -58,7 +56,7 @@ __Request__ - A web request that is executed during any action
 |on_reserve_videofile | Configuration object | The third priority file, which will be downloaded as a video file, if the main file is not available |
  
 
-#### Table of web requests
+### Table of web requests
 
 | Hook | Arg | Description|
 | ------ | ------ |  ------ |
@@ -70,7 +68,7 @@ __Request__ - A web request that is executed during any action
 | on_motion_detect | frame | Executing when the camera detect movement. |
 
 
-#### Table of hooks
+### Table of hooks
 
 | Hook | Arg | Description|
 | ------ | ------ |  ------ |
@@ -94,14 +92,14 @@ __Request__ - A web request that is executed during any action
 | on_reserve_videofile_not_created | File path | Executing when reserve video file not created. |
 | on_exit | True | Executing when system exiting. |
 
-### How to set up remote viewing
+## How to set up remote viewing
 
 To use the camera remotely (in the local network), you must in the configuration file in the line "web_stream": false, change false to true.
 Then reboot the server. In the same repository is a folder clients, it has a file ```view.py```, open it on the computer from which you want to view the camera.  You will be asked to enter the IP camera (you can get it in the control panel of your router, or via ```nmap```), port (5555 by default). If all data is entered correctly, the camera will open in a new window!
 
 Either you can connect to the broadcast via a regular browser or VLC. As a streaming address, use ```http://IP-YOUR-PC:5000/video```. 
 
-#### Table of server URLs
+### Table of server URLs
 | URL | Description|
 | ------ | ------ |
 | tcp://0.0.0.0:5555 | Primary video stream. You can connect to it through the tuner client in the ``clients`` folder |

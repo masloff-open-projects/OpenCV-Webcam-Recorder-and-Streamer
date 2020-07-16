@@ -19,7 +19,7 @@
         "pixel_update_for_detect": 200,
         "recorder_fps": 30,
         "record_file_mask": "{d}{m}{Y}_{H}{M}{S}.avi",
-        "record_file_reserve_mask": "static/{d}{m}{Y}_{H}{M}{S}.avi",
+        "record_file_reserve_mask": "{d}{m}{Y}_{H}{M}{S}.avi",
         "text_on_frame": "My Webcam",
         "web_stream": true,
         "web_ip": "tcp://0.0.0.0:5555",

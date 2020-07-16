@@ -26,7 +26,6 @@ Install Python libraries
 pip3 install cv2
 pip3 install numpy
 pip3 install flask
-
 ```
 
 Start ```main.py```
@@ -35,16 +34,16 @@ Start ```main.py```
 python3 main.py
 ```
 
-### Hooks
+### Hooks and filters
 The system sends signals at every activity by hooking. You can hang your functions on these hooks.
+To create a hook or filter, enter the file `user_hooks.py` and create and register a function in the _user_hooks function.
+There are examples in `user_hooks.py` file.
 
-```
-def execute (e=None):
-    # The body of your function
-    pass
+__Hook__ - is a function that works on some action
 
-Hooks.set('Hook', lambda E: execute(E))
-```
+__Filter__ - processing some action through a user-defined function
+
+__Request__ - A web request that is executed during any action
 
 #### Table of filters
 

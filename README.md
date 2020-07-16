@@ -4,7 +4,7 @@ A small software to create CCTV for single camera. Completely created on __Pytho
 
 <img align="center" width="100%" src="https://i.ibb.co/6FGZRv2/Screenshot-20200714-002543.png">
 
-#### How to install camera server
+## How to install camera server
 
 Copy the repository to your Linux system. 
 

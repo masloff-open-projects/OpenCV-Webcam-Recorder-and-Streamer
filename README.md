@@ -50,13 +50,13 @@ Hooks.set('Hook', lambda E: execute(E))
 
 | Filter | Arg | Description|
 | ------ | ------ |  ------ |
-|on_frame_record | frame | | 
-|on_frame_text | text  | |
-|on_frame_motion_detect_record | frame | |
-|on_socket_frame | base64.b64encode(frame) | |
-|on_socket_frame_encoded | frame | |
-|on_config | Configuration object | |
-|on_reserve_videofile | Configuration object | |
+|on_frame_record | frame | Processes the frame before recording | 
+|on_frame_text | text  | Processes the text before recording |
+|on_frame_motion_detect_record | frame | Processes the frame before recording |
+|on_socket_frame | base64.b64encode(frame) | Processes the frame before streaming (base64) |
+|on_socket_frame_encoded | frame | Processes the frame before streaming |
+|on_config | Configuration object | Processes the configuration file after loading |
+|on_reserve_videofile | Configuration object | The third priority file, which will be downloaded as a video file, if the main file is not available |
  
 
 #### Table of web requests
@@ -89,10 +89,10 @@ Hooks.set('Hook', lambda E: execute(E))
 | on_save_video | frame | Executing when the system write frame in video. To be inside the iteration of the cycle, not outside it. |
 | on_before_write_frame | frame | Executing when the frame is ready to be recorded, but not yet recorded. |
 | on_setup_cfg | Configuration object | Executing when configs ready to use. |
-| on_frame_start | Time start frame | |
-| on_videofile_created | File path | |
-| on_reserve_videofile_created | File path | |
-| on_reserve_videofile_not_created | File path | |
+| on_frame_start | UNIX Time | Executing when the frame began to be created |
+| on_videofile_created | File path | Executing when video file created. |
+| on_reserve_videofile_created | File path | Executing when reserve video file created. |
+| on_reserve_videofile_not_created | File path | Executing when reserve video file not created. |
 | on_exit | True | Executing when system exiting. |
 
 ### How to set up remote viewing

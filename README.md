@@ -26,6 +26,7 @@ Install Python libraries
 pip3 install cv2
 pip3 install numpy
 pip3 install flask
+
 ```
 
 Start ```main.py```
@@ -45,6 +46,31 @@ def execute (e=None):
 Hooks.set('Hook', lambda E: execute(E))
 ```
 
+#### Table of filters
+
+| Filter | Arg | Description|
+| ------ | ------ |  ------ |
+|on_frame_record | frame | | 
+|on_frame_text | text  | |
+|on_frame_motion_detect_record | frame | |
+|on_socket_frame | base64.b64encode(frame) | |
+|on_socket_frame_encoded | frame | |
+|on_config | Configuration object | |
+|on_reserve_videofile | Configuration object | |
+ 
+
+#### Table of web requests
+
+| Hook | Arg | Description|
+| ------ | ------ |  ------ |
+| on_face_detect | frame with face | Executing when the camera detect the face. |
+| on_eye_detect | frame with eye | Executing when the camera detect the eye. |
+| on_body_detect | frame with body | Executing when the camera detect the body. |
+| on_body_upper_detect | frame with body | Executing when the camera detect the upper body. |
+| on_body_lower_detect | frame with body | Executing when the camera detect the lower. |
+| on_motion_detect | frame | Executing when the camera detect movement. |
+
+
 #### Table of hooks
 
 | Hook | Arg | Description|
@@ -62,7 +88,11 @@ Hooks.set('Hook', lambda E: execute(E))
 | on_motion_detect | frame | Executing when the camera detect movement. |
 | on_save_video | frame | Executing when the system write frame in video. To be inside the iteration of the cycle, not outside it. |
 | on_before_write_frame | frame | Executing when the frame is ready to be recorded, but not yet recorded. |
-| on_setup_cfg | configuration object | Executing when configs ready to use. |
+| on_setup_cfg | Configuration object | Executing when configs ready to use. |
+| on_frame_start | Time start frame | |
+| on_videofile_created | File path | |
+| on_reserve_videofile_created | File path | |
+| on_reserve_videofile_not_created | File path | |
 | on_exit | True | Executing when system exiting. |
 
 ### How to set up remote viewing

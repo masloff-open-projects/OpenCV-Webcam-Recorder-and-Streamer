@@ -37,11 +37,10 @@ python3 main.py
 
 __People detect:__
 
-<img src="https://i.ibb.co/VHjjng0/Human.png" alt="Human" border="0">
-
+<p><img src="https://i.ibb.co/VHjjng0/Human.png" alt="Human" border="0"></p>
 
 __"Net" Detect:__
-<img src="https://i.ibb.co/rQwT8PX/net.png" alt="net" border="0"></a><br /><a target='_blank' href='https://imgbb.com/'>
+<p><img src="https://i.ibb.co/rQwT8PX/net.png" alt="net" border="0"></p>
 
 ### Hooks and filters
 The system sends signals at every activity by hooking. You can hang your functions on these hooks.

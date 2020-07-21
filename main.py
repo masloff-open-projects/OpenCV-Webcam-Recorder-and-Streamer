@@ -5,13 +5,16 @@
 # author: iRTEX Creative
 
 from flask import Flask, render_template, Response
+from imutils.object_detection import non_max_suppression
 from libs.hooks import hooks
 from libs.log import log
+from libs.data import data
 from libs.requests_ import requests_
 from libs.filters import filters
 from user_hooks import _user_hooks as uh
 from random import randint
 
+import imutils
 import datetime
 import numpy as np
 import sys
@@ -89,34 +92,21 @@ def main(argv):
 
             def __stream__():
 
+                global ready_frame
+
                 Log.info('STREAM', 'Start stream')
 
-                context = zmq.Context()
-                footage_socket = context.socket(zmq.SUB)
+                while True:
 
-                Log.info('STREAM', 'Connect to socket server: {ip}'.format(ip=cfg['web_ip']))
+                    try:
 
-                try:
-
-                    footage_socket.bind(cfg['web_ip'])
-
-                    footage_socket.setsockopt_string(zmq.SUBSCRIBE, np.unicode(''))
-
-                    Log.info('STREAM', 'Connected success')
-
-                    footage_socket.setsockopt_string(zmq.SUBSCRIBE, np.unicode(''))
-
-                    while True:
-                        frame = footage_socket.recv_string()
-                        img = base64.b64decode(frame)
+                        ret, jpeg = cv2.imencode('.jpg', ready_frame)
 
                         yield (b'--frame\r\n'
-                               b'Content-Type: image/jpeg\r\n\r\n' + img + b'\r\n\r\n')
+                               b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
 
-                    footage_socket.close()
-
-                except:
-                    pass
+                    except:
+                        pass
 
             @app.route('/video')
             def __main__():
@@ -129,8 +119,24 @@ def main(argv):
             if __name__ == '__main__':
                 app.run(host=str(mask({}).server(cfg['flask_ip'])), port=int(mask({}).server(str(cfg['flask_port']))))
 
-
         threading.Thread(target=app).start()
+
+    # Start window thread
+    cv2.startWindowThread()
+
+    # Start detector
+    def detector():
+        pass
+
+    threading.Thread(target=detector).start()
+
+    # NET
+    if cfg['net_detect']['enabled'] == True:
+
+        net = {
+            "net": cv2.dnn.readNetFromCaffe('models/MobileNetSSD_deploy.prototxt.txt', 'models/MobileNetSSD_deploy.caffemodel'),
+            "CLASSES": cfg['net_detect']['classes']
+        }
 
     # Mount camera
     Log.info('WAIT', 'Wait camera')
@@ -138,14 +144,24 @@ def main(argv):
     while (True):
 
         for i in range(0, 3):
+
             Hooks.call('on_wait_camera', i)
 
-            cap = cv2.VideoCapture(i)
+            if (cfg['stream'] == False):
+
+                if (cfg['video'] == False): cap = cv2.VideoCapture(i)
+                else: cv2.VideoCapture(cfg['video'])
+
+            else: cap = cv2.VideoCapture(cfg['stream'])
 
             # Main script
             if cap.isOpened():
 
                 Log.info('OK', 'Camera is connected')
+
+                if (cfg['detect_people'] == True):
+                    hog = cv2.HOGDescriptor()
+                    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
                 if (cfg['fourcc'] == 'MJPG'):
                     fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
@@ -225,7 +241,7 @@ def main(argv):
 
                 # Create mask object
                 if cfg['motion_detect'] == True:
-                    _fgbg = cv2.createBackgroundSubtractorMOG2(300, 400, True)
+                    _fgbg = cv2.createBackgroundSubtractorMOG2(False)
 
                 # Set path
                 cascade_path_face = cv2.data.haarcascades + 'haarcascade_frontalface_alt2.xml'
@@ -233,6 +249,7 @@ def main(argv):
                 cascade_path_body = cv2.data.haarcascades + 'haarcascade_fullbody.xml'
                 cascade_path_upper = cv2.data.haarcascades + 'haarcascade_upperbody.xml'
                 cascade_path_lower = cv2.data.haarcascades + 'haarcascade_lowerbody.xml'
+                cascade_path_cars = 'models/haarcascade_cars3.xml'
 
                 # Init cascade
                 face_cascade = cv2.CascadeClassifier(cascade_path_face)
@@ -240,8 +257,11 @@ def main(argv):
                 body_cascade = cv2.CascadeClassifier(cascade_path_body)
                 upper_cascade = cv2.CascadeClassifier(cascade_path_upper)
                 lower_cascade = cv2.CascadeClassifier(cascade_path_lower)
+                cars_cascade = cv2.CascadeClassifier(cascade_path_cars)
 
                 while True:
+
+                    global ready_frame
 
                     # Time frame start
                     _time_frame_start = time.time()
@@ -251,17 +271,29 @@ def main(argv):
 
                     if ret:
 
-                        _frame_text = "{value}\n".format(value=cfg['text_on_frame'])
-
                         # ZIP Frame
                         if (not cfg['video_zip'] == False):
-                            frame = cv2.resize(frame, (int(cfg['video_zip'][0]), int(cfg['video_zip'][1])), interpolation=cv2.INTER_NEAREST)
 
-                        #_gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                            if (cfg['video_zip'] == 'HD'):
+                                frame = cv2.resize(frame, (int(1080), int(720)), interpolation=cv2.INTER_NEAREST)
+
+                            elif (type(cfg['video_zip']) == type(0.1)):
+                                frame = cv2.resize(frame, (0, 0), fx=cfg['video_zip'], fy=cfg['video_zip'])
+
+                            else:
+                                frame = cv2.resize(frame, (int(cfg['video_zip'][0]), int(cfg['video_zip'][1])), interpolation=cv2.INTER_NEAREST)
+
+                        # Create children frames
+                        frame_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+
+                        (_h, _w) = frame.shape[:2]
+        
+        
+                        _frame_text = "{value}\n".format(value=cfg['text_on_frame'])
 
                         # Get the foreground mask
                         if cfg['motion_detect'] == True:
-                            _fgmask = _fgbg.apply(frame)
+                            _fgmask = _fgbg.apply(frame_gray)
 
                             # Count all the non zero pixels within the mask
                             _count = np.count_nonzero(_fgmask)
@@ -276,73 +308,94 @@ def main(argv):
                             d = datetime.datetime.now()
                             _frame_text += "{value}\n".format(value=d.strftime(cfg['time_mask']))
 
-                        if cfg['detect_body'] == True:
+                        if cfg['detect_body'] == True or type(cfg['detect_body']) == type({}):
 
-                            bodies = body_cascade.detectMultiScale(frame, 1.3, 5)
-                            upper = upper_cascade.detectMultiScale(frame, 1.3, 5)
-                            lower = lower_cascade.detectMultiScale(frame, 1.3, 5)
+                            if (type(cfg['detect_body']) == type(True)) or (cfg['detect_body']['full'] == True): bodies = body_cascade.detectMultiScale(frame_gray, 1.3, 5)
+                            if (type(cfg['detect_body']) == type(True)) or (cfg['detect_body']['upper'] == True): upper = upper_cascade.detectMultiScale(frame_gray, 1.3, 5)
+                            if (type(cfg['detect_body']) == type(True)) or (cfg['detect_body']['lower'] == True): lower = lower_cascade.detectMultiScale(frame_gray, 1.3, 5)
 
-                            for (x, y, w, h) in bodies:
+                            if (type(cfg['detect_body']) == type({}) and cfg['detect_body']['full'] == True) or (type(cfg['detect_body']) == type(True)):
 
-                                cv2.rectangle(frame, (x, y), (x + w, y + h), cfg['detect_body_boxcolor'], 1)
+                                for (x, y, w, h) in bodies:
+
+                                    cv2.rectangle(frame, (x, y), (x + w, y + h), cfg['detect_body_boxcolor'], 1)
+
+                                    if cfg['detect_text_labels'] == True:
+                                        cv2.putText(frame, 'Body', (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.4, cfg['detect_text_labels_color'])
+
+                                    if (cfg['zoom_body']) == True:
+                                        frame = frame[y:y + h, x:x + w]
+
+                                    Hooks.call('on_body_detect', frame[y:y + h, x:x + w])
+                                    Request.call('on_body_detect', frame[y:y + h, x:x + w])
+
+                            if (type(cfg['detect_body']) == type({}) and cfg['detect_body']['upper'] == True) or (type(cfg['detect_body']) == type(True)):
+
+                                for (x, y, w, h) in upper:
+
+                                    cv2.rectangle(frame, (x, y), (x + w, y + h), cfg['detect_body_boxcolor'], 1)
+
+                                    if cfg['detect_text_labels'] == True:
+                                        cv2.putText(frame, 'Body Upper', (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
+                                                    cfg['detect_text_labels_color'])
+
+                                    Hooks.call('on_body_upper_detect', frame[y:y + h, x:x + w])
+                                    Request.call('on_body_upper_detect', frame[y:y + h, x:x + w])
+
+                            if (type(cfg['detect_body']) == type({}) and cfg['detect_body']['lower'] == True) or (type(cfg['detect_body']) == type(True)):
+
+                                for (x, y, w, h) in lower:
+
+                                    cv2.rectangle(frame, (x, y), (x + w, y + h), cfg['detect_body_boxcolor'], 1)
+
+                                    if cfg['detect_text_labels'] == True:
+                                        cv2.putText(frame, 'Body Lower', (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
+                                                    cfg['detect_text_labels_color'])
+
+                                    Hooks.call('on_body_lower_detect', frame[y:y + h, x:x + w])
+                                    Request.call('on_body_lower_detect', frame[y:y + h, x:x + w])
+
+                        if cfg['detect_people'] == True:
+
+                            (rects, weights) = hog.detectMultiScale(frame_gray)
+
+                            rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
+                            pick = non_max_suppression(rects, probs=None, overlapThresh=0.65)
+
+                            for (xA, yA, xB, yB) in pick:
+
+                                cv2.rectangle(frame, (xA, yA), (xB, yB), cfg['detect_people_boxcolor'], 1)
 
                                 if cfg['detect_text_labels'] == True:
-                                    cv2.putText(frame, 'Body', (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
-                                                cfg['detect_text_labels_color'])
+                                    cv2.putText(frame, 'Human', (xA, yA - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.4, cfg['detect_text_labels_color'])
 
-                                Hooks.call('on_body_detect', frame[y:y + h, x:x + w])
-                                Request.call('on_body_detect', frame[y:y + h, x:x + w])
-
-                            for (x, y, w, h) in upper:
-
-                                cv2.rectangle(frame, (x, y), (x + w, y + h), cfg['detect_body_boxcolor'], 1)
-
-                                if cfg['detect_text_labels'] == True:
-                                    cv2.putText(frame, 'Body Upper', (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
-                                                cfg['detect_text_labels_color'])
-
-                                Hooks.call('on_body_upper_detect', frame[y:y + h, x:x + w])
-                                Request.call('on_body_upper_detect', frame[y:y + h, x:x + w])
-
-
-                            for (x, y, w, h) in lower:
-
-                                cv2.rectangle(frame, (x, y), (x + w, y + h), cfg['detect_body_boxcolor'], 1)
-
-                                if cfg['detect_text_labels'] == True:
-                                    cv2.putText(frame, 'Body Lower', (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
-                                                cfg['detect_text_labels_color'])
-
-                                Hooks.call('on_body_lower_detect', frame[y:y + h, x:x + w])
-                                Request.call('on_body_lower_detect', frame[y:y + h, x:x + w])
-
+                                if cfg['zoom_people'] == True:
+                                    if len(pick) == 1:
+                                        frame = frame[yA:yA + yB, xA:xA + xB]
 
                         if cfg['detect_face'] == True:
 
-                            faces = face_cascade.detectMultiScale(
-                                frame,
-                                scaleFactor=1.2,
-                                minNeighbors=5,
-                                minSize=(8, 8)
-                            )
+                            faces = face_cascade.detectMultiScale(frame_gray)
 
                             for (x, y, w, h) in faces:
 
                                 cv2.rectangle(frame, (x, y), (x + w, y + h), cfg['detect_face_boxcolor'], 1)
 
                                 if cfg['detect_text_labels'] == True:
-                                    cv2.putText(frame, 'Face', (x, y-8), cv2.FONT_HERSHEY_SIMPLEX, 0.4, cfg['detect_text_labels_color'])
+                                    cv2.putText(frame, 'Face', (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
+                                                cfg['detect_text_labels_color'])
 
                                 Hooks.call('on_face_detect', frame[y:y + h, x:x + w])
                                 Request.call('on_face_detect', frame[y:y + h, x:x + w])
 
                                 if cfg['detect_eye'] == True:
 
-                                    eye = eye_cascade.detectMultiScale(frame)
+                                    eye = eye_cascade.detectMultiScale(frame_gray)
 
                                     for (x_, y_, w_, h_) in eye:
 
-                                        cv2.rectangle(frame, (x_, y_), (x_ + w_, y_ + h_), cfg['detect_body_boxcolor'], 1)
+                                        cv2.rectangle(frame, (x_, y_), (x_ + w_, y_ + h_),
+                                                      cfg['detect_body_boxcolor'], 1)
 
                                         if cfg['detect_text_labels'] == True:
                                             cv2.putText(frame, 'Eye', (x_, y_ - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
@@ -350,6 +403,40 @@ def main(argv):
 
                                         Hooks.call('on_eye_detect', frame[y_:y_ + h_, x_:x_ + w_])
                                         Request.call('on_eye_detect', frame[y_:y_ + h_, x_:x_ + w_])
+
+                        if cfg['detect_car'] == True:
+
+                            cars = cars_cascade.detectMultiScale(frame_gray)
+
+                            for (x, y, w, h) in cars:
+
+                                cv2.rectangle(frame, (x, y), (x + w, y + h), cfg['detect_car_boxcolor'], 1)
+
+                                if cfg['detect_text_labels'] == True:
+                                    cv2.putText(frame, 'Car', (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.4, cfg['detect_text_labels_color'])
+
+                                Hooks.call('on_car_detect', frame[y:y + h, x:x + w])
+                                Request.call('on_car_detect', frame[y:y + h, x:x + w])
+
+                        if cfg['net_detect']['enabled'] == True:
+
+                            blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)),
+                                                         0.007843, (300, 300), 127.5)
+                            net['net'].setInput(blob)
+                            detections = net['net'].forward()
+
+                            for i in np.arange(0, detections.shape[2]):
+                                confidence = detections[0, 0, i, 2]
+                                if confidence > 0:
+                                    idx = int(detections[0, 0, i, 1])
+                                    box = detections[0, 0, i, 3:7] * np.array([_w, _h, _w, _h])
+                                    (startX, startY, endX, endY) = box.astype("int")
+                                    label = "{}: {:.2f}%".format(net['CLASSES'][idx], confidence * 100)
+                                    cv2.rectangle(frame, (startX, startY), (endX, endY), cfg['net_detect']['boxcolor'], 1)
+                                    y = startY - 15 if startY - 15 > 15 else startY + 15
+                                    cv2.putText(frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.4, cfg['net_detect']['boxcolor'], 1)
+
+                                    Hooks.call("on_net_{}_detect".format(net['CLASSES'][idx]), frame[startY:startY + _h, startX:startX + _w])
 
                         if cfg['show_fps_on_frame'] == True:
 
@@ -366,7 +453,7 @@ def main(argv):
                         y0, dy = 13 * 2, 13 * 2
                         for i, line in enumerate(Filters.call('on_frame_text', _frame_text).split('\n')):
                             y = y0 + i * dy
-                            cv2.putText(frame, line, (13, y), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255))
+                            cv2.putText(frame, line, (13, y), cv2.FONT_HERSHEY_SIMPLEX, cfg['text_on_frame_size'], cfg['text_on_frame_color'])
 
                         Hooks.call('on_before_write_frame', frame)
 
@@ -382,7 +469,7 @@ def main(argv):
                                     _video.write(Filters.call('on_frame_motion_detect_record', frame))
                                     Hooks.call('on_motion_detect', frame)
                                     Hooks.call('on_save_video', frame)
-                                    Request.call('on_motion_detect', frame) 
+                                    Request.call('on_motion_detect', frame)
 
                         # Send picture to server
                         if cfg['web_stream'] == True:
@@ -393,6 +480,9 @@ def main(argv):
                             footage_socket.send(Filters.call('on_socket_frame_encoded', jpg_as_text))
 
                             Hooks.call('on_frame_send_to_server', jpg_as_text)
+
+                        # Setup ready frame
+                        ready_frame = frame
 
                         # Show picture on PC
                         if cfg['show_stream'] == True:
@@ -413,11 +503,16 @@ def main(argv):
 
                 Hooks.call('on_release', None)
 
-        time.sleep(1)
+        # Send noise to video server
+        im = np.empty((720, 1080), np.uint8)
+        ready_frame = cv2.randn(im, (0), (99))
+
 
 if __name__ == '__main__':
 
     # Create env
+    global ready_frame
+    ready_frame = False
     Hooks = hooks()
     Log = log()
     Filters = filters()

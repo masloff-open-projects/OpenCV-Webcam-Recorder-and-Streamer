@@ -40,11 +40,21 @@ def _user_hooks(cv2=None, Hooks=None, Filters=None):
     # Filters.set('on_config', change_cfg)
 
 
+
     # Create the third highest priority file to attempt recording
     # def on_reserve_videofile(file):
     #     return ""
 
     # Filters.set('on_reserve_videofile', on_reserve_videofile)
+
+
+
+    # How to register a multihook to work with Net
+    # def person(frame):
+    #     cv2.imwrite('static/person.jpg', frame)
+    #
+    # Hooks.set('on_net_person_detect', person)
+
 
     pass
 

@@ -24,6 +24,7 @@ Install Python libraries
 pip3 install cv2
 pip3 install numpy
 pip3 install flask
+pip3 install imutils 
 ```
 
 Start ```main.py```
@@ -31,6 +32,16 @@ Start ```main.py```
 ```
 python3 main.py
 ```
+
+## Examples
+
+__People detect:__
+
+<img src="https://i.ibb.co/VHjjng0/Human.png" alt="Human" border="0">
+
+
+__"Net" Detect:__
+<img src="https://i.ibb.co/rQwT8PX/net.png" alt="net" border="0"></a><br /><a target='_blank' href='https://imgbb.com/'>
 
 ### Hooks and filters
 The system sends signals at every activity by hooking. You can hang your functions on these hooks.
@@ -77,6 +88,7 @@ __Request__ - A web request that is executed during any action
 | on_body_detect | frame with body | Executing when the camera detect the body. |
 | on_body_upper_detect | frame with body | Executing when the camera detect the upper body. |
 | on_body_lower_detect | frame with body | Executing when the camera detect the lower. |
+| on_net_*_detect | frame | Executing when the camera detect the * object. |
 | on_start_webserver | None | Executing when web server is ready started. |
 | on_wait_camera | number camera in for | Executing when system wait camera. To be inside the iteration of the cycle, not outside it. |
 | on_init | True | Executing when system started. |

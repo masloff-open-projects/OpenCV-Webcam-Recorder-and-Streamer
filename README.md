@@ -34,13 +34,7 @@ python3 main.py
 ```
 
 ## Examples
-
-__People detect:__
-
-<p><img src="https://i.ibb.co/VHjjng0/Human.png" alt="Human" border="0"></p>
-
-__"Net" Detect:__
-<p><img src="https://i.ibb.co/rQwT8PX/net.png" alt="net" border="0"></p>
+<img align="center" width="100%" src="https://i.ibb.co/KWgvvVx/Twitter-Post-1.jpg">
 
 ### Hooks and filters
 The system sends signals at every activity by hooking. You can hang your functions on these hooks.

@@ -34,7 +34,7 @@ python3 main.py
 ```
 
 ## Examples
-<img align="center" width="100%" src="https://i.ibb.co/KWgvvVx/Twitter-Post-1.jpg">
+<img align="center" width="100%" src="https://svgshare.com/i/N56.svg">
 
 ### Hooks and filters
 The system sends signals at every activity by hooking. You can hang your functions on these hooks.

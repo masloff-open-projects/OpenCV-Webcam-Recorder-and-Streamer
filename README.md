@@ -9,7 +9,7 @@ A small software to create CCTV for single camera. Completely created on __Pytho
 Copy the repository to your Linux system. 
 
 ```
-git clone https://github.com/iRTEX-Creative/OpenCV-Webcam-Recorder-and-Streamer.git
+git clone https://github.com/iRTEX-MIT/OpenCV-Webcam-Recorder-and-Streamer.git
 ```
 
 Browse to the repository folder.
